@@ -36,8 +36,8 @@ class vggClassifier:
     )
 
     classifier = nn.Sequential(
-        nn.Flatten(512, 256),
-        nn.Linear(256, 256),
+        nn.Flatten(),
+        nn.Linear(),
         nn.ReLU(),
-        nn.Linear(256, 100)
+        nn.Linear()
     )
