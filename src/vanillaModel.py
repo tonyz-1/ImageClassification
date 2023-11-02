@@ -41,20 +41,24 @@ class vggClassifier(nn.Module):
         nn.Flatten(),
         nn.Linear(2048, 10)
     )
-    vggFrontend = nn.Sequential(
+    Frontend = nn.Sequential(
 
     )
 
 class VanillaModel(nn.Module):
-    def __init__(self, model):
+    def __init__(self, backend, frontend=None):
         super(VanillaModel, self).__init__()
-        self.encoder = model.vgg
-        self.classifier = model.classifier
-        for param in self.classifier.parameters():
-            nn.init.normal_(param, mean=0, std=0.01)
-        self.loss = nn.CrossEntropyLoss()
+        self.encoder = backend
         for param in self.encoder.parameters():
             param.requires_grad = False
+        if frontend == None:
+            self.classifier = vggClassifier.vgg
+            for param in self.classifier.parameters():
+                nn.init.normal_(param, mean=0, std=0.01)
+        else:
+            self.classifier = frontend
+
+        self.loss = nn.CrossEntropyLoss()
 
     def encode(self, X):
         bottleneck = self.encoder(X)
@@ -67,6 +71,6 @@ class VanillaModel(nn.Module):
     def forward(self, X, train=True):
         encoded_result = self.encode(X)
         output_tensor = self.decode(encoded_result)
-        sm = nn.Softmax(dim=1)
-        classified = sm(output_tensor)
-        return classified
+        #sm = nn.Softmax(dim=1)
+        #classified = sm(output_tensor)
+        return output_tensor
