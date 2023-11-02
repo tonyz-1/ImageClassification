@@ -36,8 +36,8 @@ class vggClassifier(nn.Module):
         nn.ReLU(),  # relu4-1, this is the last layer used
     )
     classifier = nn.Sequential(
-        nn.Conv2d(512, 256, 1),
-        nn.Conv2d(256, 128, 1),
+        nn.Conv2d(512, 256, (1, 1)),
+        nn.Conv2d(256, 128, (1, 1)),
         nn.Flatten(),
         nn.Linear(2048, 10)
     )
