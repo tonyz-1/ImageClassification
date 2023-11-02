@@ -74,3 +74,4 @@ class VanillaModel(nn.Module):
         #sm = nn.Softmax(dim=1)
         #classified = sm(output_tensor)
         return output_tensor
+
