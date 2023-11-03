@@ -1,0 +1,11 @@
+{
+    "model":{
+        "device":"cpu",
+        "encoder":"./encoder.pth",
+        "decoder":"./weights/weight_epoch_20.pth"
+    },
+    "hyperparameters":{
+        "batch_size":64,
+        "augmented":"False"
+    }
+}
