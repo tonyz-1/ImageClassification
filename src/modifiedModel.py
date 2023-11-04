@@ -74,13 +74,24 @@ class modifiedClassifier(nn.Module):
 
 
 class ModifiedModel(nn.Module):
-    def __init__(self, backend):
+    def __init__(self, backend, device='cpu', dataset='10'):
         super(ModifiedModel, self).__init__()
         self.encoder = backend
         for param in self.encoder.parameters():
             param.requires_grad = False
-        self.classifier = modifiedClassifier.seResNet
-        self.relu = nn.ReLU()
+        if dataset == '10':
+            self.classifier = modifiedClassifier.seResNet
+            self.classifier.to(device)
+            self.relu = nn.ReLU()
+            for param in self.classifier.parameters():
+                nn.init.normal_(param, mean=0, std=0.01)
+        else:
+            self.classifier = modifiedClassifier.seResNet
+            self.classifier.to(device)
+            self.relu = nn.ReLU()
+            for param in self.classifier.parameters():
+                nn.init.normal_(param, mean=0, std=0.01)
+
         self.loss = nn.CrossEntropyLoss()
 
     def encode(self, X):
