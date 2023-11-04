@@ -90,8 +90,8 @@ train_transform_exotic = transform.Compose([transform.RandomCrop(32, padding=4),
 train_transform_vanilla = transform.Compose([transform.ToTensor()])
 #dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_exotic)
 #dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_exotic)
-dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_vanilla)
-dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_vanilla)
+dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_exotic)
+dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_exotic)
 
 train_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
 test_dl = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)

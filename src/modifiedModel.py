@@ -64,6 +64,12 @@ class modifiedClassifier(nn.Module):
         nn.Conv2d(256, 128, (3, 3)),
         nn.BatchNorm2d(128),
         SELayer(128),
+        nn.Conv2d(128, 64, (3, 3)),
+        nn.BatchNorm2d(64),
+        nn.ReLU(),
+        nn.Conv2d(64, 32, (3, 3)),
+        nn.BatchNorm2d(128),
+        SELayer(128),
     )
 
 

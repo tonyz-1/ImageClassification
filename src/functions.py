@@ -1,6 +1,7 @@
 import torch
 import vanillaModel
-from torchvision.datasets import CIFAR10
+import modifiedModel
+from torchvision.datasets import CIFAR10, CIFAR100
 from torch.utils.data import DataLoader
 import torchvision.transforms as transform
 
@@ -50,11 +51,10 @@ def top_k_error(k, model, dataloader, device):
                 predicted = torch.flatten(predicted)                
                 correct += (labels == predicted).sum().item()
             total += labels.size(0)
-
     return 100*(total-correct)/total
 
 # Returns instance of model from vanillaModel
-def init_model(encoder_file, device, decoder_file=None):
+def init_vanilla_model(encoder_file, device, decoder_file=None):
     backend = vanillaModel.vggClassifier.vgg
     backend.to(device)
     backend.load_state_dict(torch.load(encoder_file, map_location=device))
@@ -68,25 +68,32 @@ def init_model(encoder_file, device, decoder_file=None):
         model = vanillaModel.VanillaModel(backend)
     return model
 
+# Returns instance of modified model
+def init_modified_model(encoder_file, device, frontend_weights=None):
+    backend = modifiedModel.modifiedClassifier.vgg
+    backend.to(device)
+    backend.load_state_dict(torch.load(encoder_file, map_location=device))
+    model = modifiedModel.ModifiedModel(backend)
+    return model
+
 # Returns train and test dataloaders
-def init_dataloaders(batch_size, augmented=False, padding=4, crop=32):
-    train_transform_augmented = transform.Compose([transform.RandomCrop(crop, padding=padding),
-                                     transform.RandomHorizontalFlip(),
-                                     transform.ToTensor(),
-                                     transform.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
-    train_transform_vanilla = transform.Compose([transform.ToTensor()])
+def init_dataloaders(batch_size, augmented=False, padding=4, crop=32, dataset="100"):
     if augmented:
-        dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_augmented)
-        dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_augmented)
+        train_transform = transform.Compose([transform.RandomCrop(crop, padding=padding),
+                                        transform.RandomHorizontalFlip(),
+                                        transform.ToTensor(),
+                                        transform.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
+    else:
+        train_transform = transform.Compose([transform.ToTensor()])
+    if dataset == '10':
+        dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform)
+        dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform)
         train_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
         test_dl = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
         return train_dl, test_dl
     else:
-        dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_vanilla)
-        dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_vanilla)
+        dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform)
+        dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform)
         train_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
         test_dl = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
         return train_dl, test_dl
-
-
-
