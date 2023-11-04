@@ -3,10 +3,6 @@ import torch
 from torchvision.models import ResNet
 
 
-def conv3x3(input, output, stride):
-    return nn.Conv2d(input, output, kernel_size=(3, 3), stride=stride, padding=1, bias=False)
-
-
 class SELayer(nn.Module):
     def __init__(self, channel, reduction=16):
         super(SELayer, self).__init__()
