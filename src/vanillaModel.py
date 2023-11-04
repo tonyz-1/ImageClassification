@@ -44,14 +44,17 @@ class vggClassifier(nn.Module):
 
 
 class VanillaModel(nn.Module):
-    def __init__(self, backend):
+    def __init__(self, backend, frontend=None):
         super(VanillaModel, self).__init__()
         self.encoder = backend
         for param in self.encoder.parameters():
             param.requires_grad = False
-        self.classifier = vggClassifier.vgg
-        for param in self.classifier.parameters():
-            nn.init.normal_(param, mean=0, std=0.01)
+        if frontend == None:
+            self.classifier = vggClassifier.vgg
+            for param in self.classifier.parameters():
+                nn.init.normal_(param, mean=0, std=0.01)
+        else:
+            self.classifier = frontend
 
         self.loss = nn.CrossEntropyLoss()
 

@@ -20,7 +20,7 @@ def accuracy_loss(model, dl, device, loss_fn):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             loss += loss_fn(outputs, labels).cpu().item() / len(dl)
-    return 100* correct/total, loss
+    return 100*correct/total, loss
 
 def hit(label, predicted):
     count = 0
@@ -35,11 +35,11 @@ def top_k_error(k, model, dataloader, device):
     model.eval()
     correct = 0
     total = 0
-    test = 0
+    batch_num = 0
     with torch.no_grad():
         for data in dataloader:
-            test += 1
-            print(f"Batch:{test}")
+            batch_num += 1
+            print(f"Batch:{batch_num}")
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
@@ -47,6 +47,7 @@ def top_k_error(k, model, dataloader, device):
             if k > 1:
                 correct += hit(labels, predicted)
             else:
+                predicted = torch.flatten(predicted)                
                 correct += (labels == predicted).sum().item()
             total += labels.size(0)
 
