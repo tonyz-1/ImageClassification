@@ -61,6 +61,41 @@ class modifiedClassifier(nn.Module):
         nn.ReLU(),  # relu4-1, this is the last layer used
     ),
 
-    classifier = nn.Sequential(
-
+    seResNet = nn.Sequential(
+        nn.Conv2d(512, 256, (3, 3)),
+        nn.BatchNorm2d(256),
+        nn.ReLU(),
+        nn.Conv2d(256, 128, (3, 3)),
+        nn.BatchNorm2d(128),
+        SELayer(128),
     )
+
+
+class ModifiedModel(nn.Module):
+    def __init__(self, backend):
+        super(ModifiedModel, self).__init__()
+        self.encoder = backend
+        for param in self.encoder.parameters():
+            param.requires_grad = False
+        self.classifier = modifiedClassifier.seResNet
+        self.relu = nn.ReLU()
+        self.loss = nn.CrossEntropyLoss()
+
+    def encode(self, X):
+        bottleneck = self.encoder(X)
+        test = bottleneck.shape
+        return bottleneck
+
+    def decode(self, X):
+        return self.classifier(X)
+
+    def forward(self, X, train=True):
+        residual = X
+        encoded_result = self.encode(X)
+        output = self.decode(encoded_result)
+        if self.downsample is not None:
+            residual = self.downsample(X)
+        output += residual
+        output = self.relu(output)
+
+        return output
