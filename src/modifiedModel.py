@@ -1,7 +1,32 @@
 import torch.nn as nn
 import torch
+from torchvision.models import ResNet
 
-class vggClassifier(nn.Module):
+
+def conv3x3(input, output, stride):
+    return nn.Conv2d(input, output, kernel_size=(3, 3), stride=stride, padding=1, bias=False)
+
+
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y)
+        y = y.view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+class modifiedClassifier(nn.Module):
     vgg = nn.Sequential(
         nn.Conv2d(3, 3, (1, 1)),
         nn.ReflectionPad2d((1, 1, 1, 1)),
@@ -34,39 +59,8 @@ class vggClassifier(nn.Module):
         nn.ReflectionPad2d((1, 1, 1, 1)),
         nn.Conv2d(256, 512, (3, 3)),
         nn.ReLU(),  # relu4-1, this is the last layer used
-    )
+    ),
+
     classifier = nn.Sequential(
-        nn.Conv2d(512, 256, (1, 1)),
-        nn.Conv2d(256, 128, (1, 1)),
-        nn.Flatten(),
-        nn.Linear(2048, 10)
+
     )
-
-
-class VanillaModel(nn.Module):
-    def __init__(self, backend):
-        super(VanillaModel, self).__init__()
-        self.encoder = backend
-        for param in self.encoder.parameters():
-            param.requires_grad = False
-        self.classifier = vggClassifier.vgg
-        for param in self.classifier.parameters():
-            nn.init.normal_(param, mean=0, std=0.01)
-
-        self.loss = nn.CrossEntropyLoss()
-
-    def encode(self, X):
-        bottleneck = self.encoder(X)
-        test = bottleneck.shape
-        return bottleneck
-
-    def decode(self, X):
-        return self.classifier(X)
-    
-    def forward(self, X, train=True):
-        encoded_result = self.encode(X)
-        output_tensor = self.decode(encoded_result)
-        #sm = nn.Softmax(dim=1)
-        #classified = sm(output_tensor)
-        return output_tensor
-
