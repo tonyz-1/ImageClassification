@@ -49,7 +49,7 @@ dataset = opt.dataset
 if dataset == '10':
     model = modifiedModel.ModifiedModel(backend, device=device)
 else:
-    model = vanillaModel.VanillaModel(backend, device=device, dataset='100')
+    model = modifiedModel.ModifiedModel(backend, device=device, dataset='100')
 
 
 # Hyper Parameters
