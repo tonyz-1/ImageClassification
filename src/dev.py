@@ -78,6 +78,6 @@ train_transform_vanilla = transform.Compose([transform.ToTensor()])
 dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_vanilla)
 dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_vanilla)
 train_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
-test_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=False)
+test_dl = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
 
 train(model, n_epochs, train_dl, test_dl, device, optimizer, scheduler, loss_fn, loss_file)
