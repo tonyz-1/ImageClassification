@@ -55,34 +55,56 @@ class modifiedClassifier(nn.Module):
         nn.ReflectionPad2d((1, 1, 1, 1)),
         nn.Conv2d(256, 512, (3, 3)),
         nn.ReLU(),  # relu4-1, this is the last layer used
-    ),
-
-    seResNet = nn.Sequential(
-        nn.Conv2d(512, 256, (3, 3)),
-        nn.BatchNorm2d(256),
-        nn.ReLU(),
-        nn.Conv2d(256, 128, (3, 3)),
-        nn.BatchNorm2d(128),
-        SELayer(128),
     )
 
 
 class ModifiedModel(nn.Module):
-    def __init__(self, backend, device='cpu', dataset='10'):
+    def __init__(self, backend, inDim, outDim, stride=1, reduction=16, device='cpu', dataset='10'):
         super(ModifiedModel, self).__init__()
         self.encoder = backend
         for param in self.encoder.parameters():
             param.requires_grad = False
+
         if dataset == '10':
-            self.classifier = modifiedClassifier.seResNet
+            self.classifier = nn.Sequential(
+                nn.Conv2d(inDim, outDim, (3, 3), stride=stride, padding=1),
+                nn.BatchNorm2d(outDim),
+                nn.ReLU(),
+                nn.Conv2d(outDim, outDim, (3, 3), stride=1, padding=1),
+                nn.BatchNorm2d(outDim),
+                SELayer(outDim, reduction),
+            )
             self.classifier.to(device)
             self.relu = nn.ReLU()
+            if inDim != outDim:
+                self.downsample = nn.Sequential(
+                    nn.Conv2d(inDim, outDim, (1, 1), stride=stride, bias=False),
+                    nn.BatchNorm2d(outDim)
+                )
+            else:
+                self.downsample = lambda x: x
+
             for param in self.classifier.parameters():
                 nn.init.normal_(param, mean=0, std=0.01)
         else:
-            self.classifier = modifiedClassifier.seResNet
+            self.classifier = nn.Sequential(
+                nn.Conv2d(inDim, outDim, (3, 3), stride=stride, padding=1),
+                nn.BatchNorm2d(outDim),
+                nn.ReLU(),
+                nn.Conv2d(outDim, outDim, (3, 3), stride=1, padding=1),
+                nn.BatchNorm2d(outDim),
+                SELayer(outDim, reduction),
+            )
             self.classifier.to(device)
             self.relu = nn.ReLU()
+            if inDim != outDim:
+                self.downsample = nn.Sequential(
+                    nn.Conv2d(inDim, outDim, (1, 1), stride=stride, bias=False),
+                    nn.BatchNorm2d(outDim)
+                )
+            else:
+                self.downsample = lambda x: x
+
             for param in self.classifier.parameters():
                 nn.init.normal_(param, mean=0, std=0.01)
 
@@ -90,19 +112,28 @@ class ModifiedModel(nn.Module):
 
     def encode(self, X):
         bottleneck = self.encoder(X)
-        test = bottleneck.shape
         return bottleneck
 
     def decode(self, X):
         return self.classifier(X)
 
     def forward(self, X, train=True):
-        residual = X
         encoded_result = self.encode(X)
-        output = self.decode(encoded_result)
-        if self.downsample is not None:
-            residual = self.downsample(X)
-        output += residual
-        output = self.relu(output)
+        residual = self.downsample(encoded_result)         # First SEResNet block
+        output1 = self.decode(encoded_result)
+        output1 += residual
+        output1 = self.relu(output1)
 
-        return output
+        return output1
+
+        # residual1 = self.downsample(output1)        # Second SEResNet block
+        # output2 = self.decode(encoded_result)
+        # output2 += residual1
+        # output2 = self.relu(output2)
+        #
+        # residual2 = self.downsample(output2)        # Third SEResNet block
+        # output3 = self.decode(encoded_result)
+        # output3 += residual2
+        # output3 = self.relu(output3)
+        #
+        # return output3

@@ -47,9 +47,9 @@ backend.load_state_dict(torch.load(encoder_file, map_location=device))
 dataset = opt.dataset
 
 if dataset == '10':
-    model = modifiedModel.ModifiedModel(backend, device=device)
+    model = modifiedModel.ModifiedModel(backend, 512, 256, device=device)
 else:
-    model = modifiedModel.ModifiedModel(backend, device=device, dataset='100')
+    model = modifiedModel.ModifiedModel(backend, 512, 256, device=device, dataset='100')
 
 
 # Hyper Parameters
