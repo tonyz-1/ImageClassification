@@ -36,27 +36,41 @@ class vggClassifier(nn.Module):
         nn.ReLU(),  # relu4-1, this is the last layer used
     )
     classifier = nn.Sequential(
-        nn.Conv2d(512, 256, 1),
-        nn.Conv2d(256, 128, 1),
+        nn.Conv2d(512, 256, (1, 1)),
+        nn.Conv2d(256, 128, (1, 1)),
         nn.Flatten(),
         nn.Linear(2048, 10)
     )
-    Frontend = nn.Sequential(
-
+    classifier_100 = nn.Sequential(
+        nn.Conv2d(512, 256, (1, 1)),
+        nn.Conv2d(256, 128, (1, 1)),
+        nn.Flatten(),
+        nn.Linear(2048, 100)
     )
 
+
 class VanillaModel(nn.Module):
-    def __init__(self, backend, frontend=None):
+    def __init__(self, backend, frontend=None, device='cpu', dataset='10'):
         super(VanillaModel, self).__init__()
         self.encoder = backend
         for param in self.encoder.parameters():
             param.requires_grad = False
-        if frontend == None:
-            self.classifier = vggClassifier.vgg
-            for param in self.classifier.parameters():
-                nn.init.normal_(param, mean=0, std=0.01)
+        if dataset == '10':
+            if frontend == None:
+                self.classifier = vggClassifier.classifier
+                self.classifier.to(device)
+                for param in self.classifier.parameters():
+                    nn.init.normal_(param, mean=0, std=0.01)
+            else:
+                self.classifier = frontend
         else:
-            self.classifier = frontend
+            if frontend == None:
+                self.classifier = vggClassifier.classifier_100
+                self.classifier.to(device)
+                for param in self.classifier.parameters():
+                    nn.init.normal_(param, mean=0, std=0.01)
+            else:
+                self.classifier = frontend
 
         self.loss = nn.CrossEntropyLoss()
 

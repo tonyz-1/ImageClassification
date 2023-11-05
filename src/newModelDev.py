@@ -7,6 +7,7 @@ from prodigyopt import Prodigy
 import torch
 import argparse
 import functions
+import modifiedModel
 from train import train
 import os
 
@@ -39,32 +40,17 @@ if (opt.cuda == 'y' or opt.cuda == 'Y') and (torch.cuda.is_available()):
 encoder_file = './encoder.pth'
 
 # Model Instantiation
-backend = vanillaModel.vggClassifier.vgg
+backend = modifiedModel.modifiedClassifier.vgg
 backend.to(device)
 backend.load_state_dict(torch.load(encoder_file, map_location=device))
 
 dataset = opt.dataset
 
 if dataset == '10':
-    if decoder_file != None:
-        frontend = vanillaModel.vggClassifier.classifier
-        frontend.to(device)
-        frontend.load_state_dict(torch.load(decoder_file, map_location=device))
-        model = vanillaModel.VanillaModel(backend, frontend)
-    else:
-        model = vanillaModel.VanillaModel(backend, device=device)
+    model = modifiedModel.ModifiedModel(backend, 512, 256, device=device)
 else:
-    if decoder_file != None:
-        frontend = vanillaModel.vggClassifier.classifier_100
-        frontend.to(device)
-        frontend.load_state_dict(torch.load(decoder_file, map_location=device))
-        model = vanillaModel.VanillaModel(backend, frontend, dataset='100')
-    else:
-        model = vanillaModel.VanillaModel(backend, device=device, dataset='100')
+    model = modifiedModel.ModifiedModel(backend, 512, 256, device=device, dataset='100')
 
-#model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18')
-#model.to(device)
-#model.train()
 
 # Hyper Parameters
 weight_decay = 0.1
@@ -88,10 +74,10 @@ train_transform_exotic = transform.Compose([transform.RandomCrop(32, padding=4),
                                      transform.ToTensor(),
                                      transform.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
 train_transform_vanilla = transform.Compose([transform.ToTensor()])
-#dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_exotic)
-#dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_exotic)
-dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_exotic)
-dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_exotic)
+dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_exotic)
+dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_exotic)
+# dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_vanilla)
+# dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_vanilla)
 
 train_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
 test_dl = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
