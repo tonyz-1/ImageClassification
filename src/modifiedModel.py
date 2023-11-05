@@ -4,7 +4,7 @@ from torchvision.models import ResNet
 
 
 class SELayer(nn.Module):
-    def __init__(self, channel, reduction=16):
+    def __init__(self, channel, reduction):
         super(SELayer, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
@@ -15,7 +15,7 @@ class SELayer(nn.Module):
         )
 
     def forward(self, x):
-        b, c, _, _ = x.size()
+        b, c, temp, temp1 = x.size()
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y)
         y = y.view(b, c, 1, 1)
@@ -75,6 +75,7 @@ class ModifiedModel(nn.Module):
                 SELayer(outDim, reduction),
             )
             self.classifier.to(device)
+            self.flatten = nn.Flatten()
             self.relu = nn.ReLU()
             if inDim != outDim:
                 self.downsample = nn.Sequential(
@@ -96,6 +97,7 @@ class ModifiedModel(nn.Module):
                 SELayer(outDim, reduction),
             )
             self.classifier.to(device)
+            self.flatten = nn.Flatten()
             self.relu = nn.ReLU()
             if inDim != outDim:
                 self.downsample = nn.Sequential(
@@ -123,6 +125,7 @@ class ModifiedModel(nn.Module):
         output1 = self.decode(encoded_result)
         output1 += residual
         output1 = self.relu(output1)
+        output1 = self.flatten(output1)
 
         return output1
 
