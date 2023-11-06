@@ -47,9 +47,13 @@ backend.load_state_dict(torch.load(encoder_file, map_location=device))
 dataset = opt.dataset
 
 if dataset == '10':
-    model = modifiedModel.ModifiedModel(backend, 512, 256, device=device)
+    #model = modifiedModel.ModifiedModel(backend, 512, 256, device=device)
+    model = modifiedModel.CoffeeNet(backend, 10)
+    model.to(device)
 else:
-    model = modifiedModel.ModifiedModel(backend, 512, 256, device=device, dataset='100')
+    #model = modifiedModel.ModifiedModel(backend, 512, 256, device=device, dataset='100')
+    model = modifiedModel.CoffeeNet(backend, 100)
+    model.to(device)
 
 
 # Hyper Parameters
@@ -74,10 +78,12 @@ train_transform_exotic = transform.Compose([transform.RandomCrop(32, padding=4),
                                      transform.ToTensor(),
                                      transform.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
 train_transform_vanilla = transform.Compose([transform.ToTensor()])
-dataset_train = CIFAR10('./data', download=True, train=True, transform=train_transform_exotic)
-dataset_test = CIFAR10('./data', download=True, train=False, transform=train_transform_exotic)
-# dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_vanilla)
-# dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_vanilla)
+
+#dataset_train, dataset_test = functions.init_dataloaders(batch_size=batch_size, augmented=True, dataset=dataset)
+dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_exotic)
+dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_exotic)
+#dataset_train = CIFAR100('./data', download=True, train=True, transform=train_transform_vanilla)
+#dataset_test = CIFAR100('./data', download=True, train=False, transform=train_transform_vanilla)
 
 train_dl = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
 test_dl = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)

@@ -6,12 +6,6 @@ config_file = "./modelinit.json"
 with open(config_file) as handle:
     config = json.loads(handle.read())
 
-#Model init
-model_config = config["model_modified"]
-encoder_file = model_config["encoder"]
-device = model_config["device"]
-model = functions.init_modified_model(encoder_file, device)
-
 
 #Dataloader
 hp_config = config["hyperparameters"]
@@ -19,6 +13,13 @@ batch_size = hp_config["batch_size"]
 augmented = hp_config["augmented"]
 dataset = hp_config["dataset"]
 train_dl, test_dl = functions.init_dataloaders(batch_size, augmented, dataset=dataset)
+
+#Model init
+model_config = config["model_modified"]
+encoder_file = model_config["encoder"]
+decoder_file = model_config['weights']
+device = model_config["device"]
+model = functions.init_modified_model(encoder_file, device, frontend_weights=decoder_file, dataset=dataset)
 
 
 #Errors

@@ -28,7 +28,7 @@ def train(model, n_epochs, train_dl, test_dl, device, optimizer, scheduler, loss
             optimizer.step()
 
             loss_epoch += loss.item()
-            if index % 100 == 0:
+            if index % 500 == 0:
                 print(f"Batch {index} loss: {loss}")
 
         test_a, test_l = functions.accuracy_loss(model, test_dl, device, loss_fn)
@@ -39,8 +39,8 @@ def train(model, n_epochs, train_dl, test_dl, device, optimizer, scheduler, loss
         losses_list.append(loss_epoch / index)
         print(f"Epoch {epoch} loss: {losses_list[epoch]}")
         if epoch % 5 == 0:
-            state_dict = model.classifier.state_dict()
-            torch.save(state_dict, f"./weights/weight_vanilla_epoch_{epoch}.pth")
+            state_dict = model.state_dict()
+            torch.save(state_dict, f"./weights/weight_coffee_epoch_{epoch}_cifar100_v3.pth")
             #test_a, test_l = functions.accuracy_loss(model, test_dl, device, loss_fn)
             #print(f"Test accuracy epoch {epoch}: {test_a}")
             #test_accuracy.append(test_a)

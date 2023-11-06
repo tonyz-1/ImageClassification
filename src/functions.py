@@ -69,11 +69,30 @@ def init_vanilla_model(encoder_file, device, decoder_file=None):
     return model
 
 # Returns instance of modified model
-def init_modified_model(encoder_file, device, frontend_weights=None):
+def init_modified_model(encoder_file, device, frontend_weights=None, dataset='10'):
     backend = modifiedModel.modifiedClassifier.vgg
     backend.to(device)
     backend.load_state_dict(torch.load(encoder_file, map_location=device))
-    model = modifiedModel.ModifiedModel(backend)
+    if dataset == '10':
+        model = modifiedModel.ModifiedModel(backend, 512, 256, device=device)
+    else:
+        model = modifiedModel.ModifiedModel(backend, 512, 256, device=device, dataset='100')
+    if frontend_weights != None:
+        model.load_state_dict(torch.load(frontend_weights, map_location=device))
+        model.to(device)
+    return model
+
+def init_coffee_model(encoder_file, device, weights=None, dataset='10'):
+    backend = modifiedModel.modifiedClassifier.vgg
+    backend.to(device)
+    backend.load_state_dict(torch.load(encoder_file, map_location=device))
+    if dataset == '10':
+        model = modifiedModel.CoffeeNet(backend, num_classes=10, device=device)
+    else:
+        model = modifiedModel.CoffeeNet(backend, num_classes=100, device=device)
+    if weights != None:
+        model.load_state_dict(torch.load(weights, map_location=device))
+        model.to(device)
     return model
 
 # Returns train and test dataloaders

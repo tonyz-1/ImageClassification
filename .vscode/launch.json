@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["-e", "25", "-b", "128", "-l", "./encoder.pth","-s", "./weights/weight_epoch_0.pth", "-p", "loss.png", "-cuda", "y", "-vanilla", "N" ]
+            "args": ["-e", "30", "-b", "32", "-l", "./encoder.pth", "-p", "loss_coffee_aug_cifar100_v2.png", "-cuda", "y", "-vanilla", "N", "-dataset", "100" ]
         }
     ]
 }
